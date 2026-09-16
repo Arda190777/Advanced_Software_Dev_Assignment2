@@ -1,78 +1,84 @@
-// Advanced_Software_Dev_Assignment2.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
-
 #include <iostream> // Ekrana yazi yazmak icin
-#include <fstream> // Dosyayi acmak ve okumak icin kullaniyoruz
-#include <string> // Metin degisikliklerini kullanmak icin 
-#include <vector> // Birden fazla ogrencinin bilgisini listede tutmak icin
-using namespace std; // std = yazmadan cout, string vector gibi seyleri kullanmamizi sagliyorr.
-struct STUDENT_DATA // std:: Ogrenci bilgilerini tutmak icin bir yapi olusturur
+#include <fstream> // Dosyayi acmak ve okumak icin
+#include <string> // Metin kullanmak icin
+#include <vector> // Birden fazla ogrenciyi listede tutmak icin
+
+#define PRE_RELEASE // Pre-release modunu aktif eder
+
+using namespace std; // std:: yazmadan cout, string ve vector kullanmamizi saglar
+
+struct STUDENT_DATA // Ogrenci bilgilerini tutan yapi
 {
-    string firstName; // Ogrenci adini tutuyor
-    string lastName; // Ogrenci soyadini tutuyor
+    string firstName; // Ogrencinin adini tutar
+    string lastName; // Ogrencinin soyadini tutar
+    string email; // Ogrencinin email adresini tutar
 };
 
 int main()
 {
-    vector<STUDENT_DATA> studentList; // Tum ogrecileri tutacak liste
-    ifstream file("StudentData.txt"); // StudentData.txt dosyasini acar
-    if (!file.is_open()) // Dosya acilmazsa bu kisim calisir
-    {
-        cout << "File couldn't open" << endl; // ekrana hata mesaji yazar;
-            return 1;  // Programi btirir
+    vector<STUDENT_DATA> studentList; // Tum ogrencileri tutacak liste
 
+#ifdef PRE_RELEASE
+    ifstream file("StudentData_Emails.txt"); // Pre-release dosyasini acar
+    cout << "Running Pre-Release Version" << endl; // Pre-release mesajini yazdirir
+#else
+    ifstream file("StudentData.txt"); // Standard dosyayi acar
+    cout << "Running Standard Version" << endl; // Standard mesajini yazdirir
+#endif
+
+    if (!file.is_open()) // Dosya acilmazsa kontrol eder
+    {
+        cout << "File couldn't open" << endl; // Hata mesaji yazdirir
+        return 1; // Programi bitirir
     }
 
-    string line; // Dosyadan okunan her satiri gecici olarak tutar
+    string line; // Dosyadan okunan satiri tutar
 
-    while (getline(file, line))
+    while (getline(file, line)) // Dosyayi satir satir okur
     {
-        // Dosyayi satir satir okur
-        int comma = line.find(','); // Satirdaki virgulun yerini bulur
-        if (comma != -1) // Eger virgul bulunduysa devam eder
+        int firstComma = line.find(','); // Ilk virgulun yerini bulur
+
+        if (firstComma != -1) // Ilk virgul bulunduysa devam eder
         {
             STUDENT_DATA student; // Yeni bir ogrenci olusturur
-            student.firstName = line.substr(0, comma); // virguldeki onceki kisimi alir ve ogrencinin adi yapar
-            student.lastName = line.substr(comma + 1); // virgulden sonraki kismi alir ve ogrencin soy adi yapar
 
-            studentList.push_back(student);
-            //Ogrenciyi studentList isimli listeye ekler
+            student.firstName = line.substr(0, firstComma); // Adi alir
 
+#ifdef PRE_RELEASE
+            int secondComma = line.find(',', firstComma + 1); // Ikinci virgulun yerini bulur
+
+            if (secondComma != -1) // Ikinci virgul bulunduysa devam eder
+            {
+                student.lastName = line.substr(firstComma + 1, secondComma - firstComma - 1); // Soyadi alir
+                student.email = line.substr(secondComma + 1); // Email adresini alir
+            }
+#else
+            student.lastName = line.substr(firstComma + 1); // Standard modda soyadi alir
+#endif
+
+            studentList.push_back(student); // Ogrenciyi listeye ekler
         }
-
-
-
-
     }
-#ifdef _DEBUG   // Program Debug modunda calisiyorsa bu kisim aktif olur
+
+#ifdef _DEBUG // Sadece Debug modunda calisir
 
     cout << "Student List:" << endl; // Baslik yazdirir
 
     for (int i = 0; i < studentList.size(); i++) // Listedeki tum ogrencileri gezer
     {
-        cout << studentList[i].firstName << " "  // Ogrencinin adini yazdirir
-            << studentList[i].lastName << endl; // Ogrencinin soyadini yazdirir
+        cout << studentList[i].firstName << " "
+            << studentList[i].lastName; // Ad ve soyadi yazdirir
+
+#ifdef PRE_RELEASE
+        cout << " " << studentList[i].email; // Pre-release modunda emaili de yazdirir
+#endif
+
+        cout << endl; // Yeni satira gecer
     }
 
-#endif   // Debug kodunun bittigi yer
-    file.close(); // Dosyayi kapa
-    return 1; // programi bitir
+#endif
 
+    file.close(); // Dosyayi kapatir
+
+    return 1; // Programi bitirir
 }
-
-
-
-
-
-
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
